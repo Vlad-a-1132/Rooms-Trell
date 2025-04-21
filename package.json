@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "A clone of trello app which does the basic features of real world trello",
   "scripts": {
-    "dev": "NODE_OPTIONS=--openssl-legacy-provider next dev",
-    "build": "NODE_OPTIONS=--openssl-legacy-provider next build",
-    "start": "NODE_OPTIONS=--openssl-legacy-provider next start",
+    "dev": "cross-env NODE_OPTIONS=--openssl-legacy-provider next dev",
+    "build": "cross-env NODE_OPTIONS=--openssl-legacy-provider next build",
+    "start": "cross-env NODE_OPTIONS=--openssl-legacy-provider next start",
     "lint": "eslint --fix .",
     "format": "prettier --write './**/*.{js,jsx,ts,tsx,css,md,json}' --config ./.prettierrc",
     "prepare": "husky install"
@@ -55,6 +55,7 @@
     "@types/react-beautiful-dnd": "^13.0.0",
     "@typescript-eslint/eslint-plugin": "^4.22.0",
     "@typescript-eslint/parser": "^4.22.0",
+    "cross-env": "^7.0.3",
     "eslint": "^7.24.0",
     "eslint-config-next": "^11.0.1",
     "eslint-config-prettier": "^8.2.0",
