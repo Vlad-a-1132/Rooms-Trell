@@ -1,75 +1,31 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-
-import { connectToDatabase } from '@/util/mongodb';
-import { hash } from 'bcrypt';
 import { cors } from '../cors';
 
-const SALTROUNDS = 10;
-
-const isUserExists = async (db, email) => {
-  const user = await db.collection('users').find({ email: email }).toArray();
-
-  if (user.length > 0) {
-    return true;
-  }
-
-  return false;
-};
-
-const createUser = async (body, res) => {
-  const { email, password, id, fullName } = body;
-
-  const { db, client } = await connectToDatabase();
-
-  if (client.isConnected()) {
-    const isExistingUser = await isUserExists(db, email);
-
-    if (isExistingUser) {
-      const data = {
-        message: 'Email is already registered'
-      };
-
-      res.status(404).send(data);
-      return;
-    }
-
-    // Create User
-    let user = {};
-
-    hash(password, SALTROUNDS, async (err, hash) => {
-      // Store hash in your password DB.
-      user = await db.collection('users').insertOne({ _id: id, email, password: hash, fullName });
-    });
-
-    if (user) {
-      const data = {
-        message: 'success'
-      };
-
-      res.status(200).send(data);
-      return;
-    }
-
-    res.status(404).send({ message: 'failed' });
-
-    return;
-  } else {
-    const data = {
-      message: 'DB error',
-      status: 400
-    };
-
-    res.send(data);
-  }
-};
-
-// Базовый обработчик
+// Обработчик API для перенаправления запросов на оригинальный сервер
 async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
+  // Разрешаем только POST запросы
   if (req.method === 'POST') {
-    createUser(req.body, res);
-    return;
+    try {
+      // Отправляем запрос на оригинальный сервер
+      const response = await fetch('https://trello-clone-one.vercel.app/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(req.body)
+      });
+
+      // Получаем ответ
+      const data = await response.json();
+
+      // Возвращаем такой же статус и данные
+      res.status(response.status).json(data);
+    } catch (error) {
+      console.error('Error forwarding register request:', error);
+      res.status(500).json({ message: 'Internal server error', error: error.message });
+    }
   } else {
-    // Handle any other HTTP method
+    // Для других методов возвращаем ошибку Method Not Allowed
     res.status(405).json({ message: 'Method Not Allowed' });
   }
 }
