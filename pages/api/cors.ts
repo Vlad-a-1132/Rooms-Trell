@@ -15,13 +15,8 @@ interface CorsConfig {
 
 // Конфигурация CORS по умолчанию
 const defaultCorsConfig: CorsConfig = {
-  // Разрешаем доступ с обоих доменов и локальных сред разработки
-  origin: [
-    'https://rooms-trell.vercel.app',
-    'https://trello-clone-one.vercel.app',
-    'http://localhost:3000',
-    'http://localhost:3001'
-  ],
+  // В продакшене мы разрешаем все запросы, чтобы избежать проблем с предварительными деплоями и другими доменами
+  origin: '*',
   methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
   allowedHeaders: [
     'X-CSRF-Token',
@@ -43,29 +38,18 @@ const defaultCorsConfig: CorsConfig = {
  */
 export function cors(handler: NextHandler, corsConfig = defaultCorsConfig): NextHandler {
   return async (req: NextApiRequest, res: NextApiResponse) => {
+    // Получаем origin из заголовков
+    const requestOrigin = req.headers.origin || '';
+
     // Всегда разрешаем OPTIONS запросы для preflight
     if (req.method === 'OPTIONS') {
       // Устанавливаем необходимые CORS заголовки
-      res.setHeader('Access-Control-Allow-Credentials', corsConfig.credentials ? 'true' : 'false');
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
       res.setHeader('Access-Control-Allow-Methods', corsConfig.methods.join(','));
       res.setHeader('Access-Control-Allow-Headers', corsConfig.allowedHeaders.join(','));
 
-      // Определяем origin
-      const requestOrigin = req.headers.origin || '';
-
-      // Для OPTIONS запросов лучше всегда разрешать доступ с любого origin
-      if (Array.isArray(corsConfig.origin)) {
-        if (corsConfig.origin.includes(requestOrigin)) {
-          res.setHeader('Access-Control-Allow-Origin', requestOrigin);
-        } else {
-          // Если origin не в списке, все равно разрешаем для OPTIONS
-          res.setHeader('Access-Control-Allow-Origin', requestOrigin);
-        }
-      } else if (corsConfig.origin === '*') {
-        res.setHeader('Access-Control-Allow-Origin', '*');
-      } else if (typeof corsConfig.origin === 'string') {
-        res.setHeader('Access-Control-Allow-Origin', corsConfig.origin);
-      }
+      // Для preflight запросов всегда разрешаем запрашивающий origin
+      res.setHeader('Access-Control-Allow-Origin', requestOrigin);
 
       // Успешно обрабатываем preflight запрос
       res.status(200).end();
@@ -73,33 +57,11 @@ export function cors(handler: NextHandler, corsConfig = defaultCorsConfig): Next
     }
 
     // Устанавливаем заголовки CORS для обычных запросов
-    res.setHeader('Access-Control-Allow-Credentials', corsConfig.credentials ? 'true' : 'false');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
 
-    // Определяем origin для обычных запросов
-    const requestOrigin = req.headers.origin || '';
-
-    if (corsConfig.origin === '*') {
-      // Если разрешены все источники, устанавливаем '*'
-      // Но если credentials: true, нужно указать конкретный источник
-      if (corsConfig.credentials) {
-        res.setHeader('Access-Control-Allow-Origin', requestOrigin);
-      } else {
-        res.setHeader('Access-Control-Allow-Origin', '*');
-      }
-    } else if (typeof corsConfig.origin === 'string') {
-      // Если указан конкретный источник
-      res.setHeader('Access-Control-Allow-Origin', corsConfig.origin);
-    } else if (Array.isArray(corsConfig.origin)) {
-      // Если указан массив источников
-      if (corsConfig.origin.includes(requestOrigin)) {
-        res.setHeader('Access-Control-Allow-Origin', requestOrigin);
-      } else {
-        // Если домен не в списке, но мы хотим быть более гибкими
-        // Можно разрешить доступ с любого домена для тестирования
-        // В продакшене этот блок лучше закомментировать
-        res.setHeader('Access-Control-Allow-Origin', requestOrigin);
-      }
-    }
+    // Разрешаем запросы с любого origin, но если credentials: true,
+    // мы должны указать конкретный origin вместо "*"
+    res.setHeader('Access-Control-Allow-Origin', requestOrigin);
 
     // Устанавливаем заголовки для методов
     res.setHeader('Access-Control-Allow-Methods', corsConfig.methods.join(','));
