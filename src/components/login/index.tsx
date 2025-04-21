@@ -68,8 +68,15 @@ const Login = () => {
         window.location.href = `${window.location.origin}/home`;
       }
     } else if (result.message === 'success') {
+      // Set user_id in the cookie on the client side for backup
       document.cookie = `user_id=${result.id}; path=/; max-age=86400`;
-      window.location.href = `${window.location.origin}/home`;
+
+      console.log('Login successful, redirecting to /home');
+
+      // Add timeout to ensure cookie is set before redirection
+      setTimeout(() => {
+        window.location.href = `${window.location.origin}/home`;
+      }, 300);
     }
 
     if (response.status === 404) {

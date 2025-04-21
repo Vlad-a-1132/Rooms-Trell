@@ -33,12 +33,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void>
         // Установка куков вручную
         res.setHeader('Set-Cookie', [
           serialize('token', data.token, cookieOptions),
-          serialize('user_id', data.id || '', cookieOptions)
+          serialize('user_id', data.id || '', {
+            ...cookieOptions,
+            httpOnly: false // Make user_id accessible on client-side
+          })
         ]);
 
         // Для отладки, выведем в консоль
         console.log('Setting cookies with token:', data.token);
         console.log('User ID:', data.id);
+
+        // Добавляем token в ответ для использования на клиенте
+        data.id = data.id || '';
       }
 
       // Возвращаем статус и данные

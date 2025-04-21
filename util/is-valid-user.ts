@@ -34,6 +34,15 @@ const isValidUser = (ctx): UserValidProps => {
     } else {
       return { isValid: false };
     }
+  } else {
+    // Client-side authentication check
+    const cookies = document.cookie ? cookie.parse(document.cookie) : {};
+    const userId = cookies.user_id;
+
+    if (userId) {
+      return { id: userId, isValid: true };
+    }
+    return { isValid: false };
   }
 };
 
