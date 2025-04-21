@@ -53,35 +53,15 @@ const NotificationsMenu: React.FC = () => {
         setIsRefreshing(true);
       }
 
-      dispatch(fetchNotifications())
-        .then((action) => {
-          console.log('Fetched notifications:', action.payload);
-          if (showFeedback) {
-            setIsRefreshing(false);
+      // Просто вызываем dispatch, не пытаемся обработать результат сразу
+      dispatch(fetchNotifications());
 
-            // Если есть непрочитанные уведомления, показываем тост
-            const unreadItems = Array.isArray(action.payload)
-              ? action.payload.filter((n) => !n.isRead).length
-              : 0;
-
-            if (unreadItems > 0) {
-              toast({
-                title: 'Новые уведомления',
-                description: `У вас ${unreadItems} непрочитанных уведомлений`,
-                status: 'info',
-                duration: 3000,
-                isClosable: true,
-                position: 'top-right'
-              });
-            }
-          }
-        })
-        .catch((error) => {
-          console.error('Error fetching notifications:', error);
-          if (showFeedback) {
-            setIsRefreshing(false);
-          }
-        });
+      // Если нужно показать фидбек, делаем это через небольшую задержку
+      if (showFeedback) {
+        setTimeout(() => {
+          setIsRefreshing(false);
+        }, 500);
+      }
     } catch (error) {
       console.error('Error fetching notifications:', error);
       if (showFeedback) {
@@ -101,43 +81,37 @@ const NotificationsMenu: React.FC = () => {
       console.log('Handling notification click:', notification);
 
       // Сначала помечаем уведомление как прочитанное
-      dispatch(markNotificationAsRead(notification._id))
-        .then((result) => {
-          console.log('Mark as read result:', result);
+      dispatch(markNotificationAsRead(notification._id));
 
-          // Если уведомление о приглашении в доску, переходим на нее
-          if (notification.type === 'board_invite' && notification.boardId) {
-            console.log(`Navigating to board: /boards/${notification.boardId}`);
+      // Если уведомление о приглашении в доску, переходим на нее
+      if (notification.type === 'board_invite' && notification.boardId) {
+        console.log(`Navigating to board: /boards/${notification.boardId}`);
 
-            // Закрываем меню перед навигацией
-            setIsMenuOpen(false);
+        // Закрываем меню перед навигацией
+        setIsMenuOpen(false);
 
-            // Небольшая задержка перед навигацией, чтобы меню успело закрыться
-            setTimeout(() => {
-              router
-                .push(`/boards/${notification.boardId}`)
-                .then(() => {
-                  console.log('Navigation successful');
-                })
-                .catch((err) => {
-                  console.error('Navigation error:', err);
+        // Небольшая задержка перед навигацией, чтобы меню успело закрыться
+        setTimeout(() => {
+          router
+            .push(`/boards/${notification.boardId}`)
+            .then(() => {
+              console.log('Navigation successful');
+            })
+            .catch((err) => {
+              console.error('Navigation error:', err);
 
-                  // Если не удалось перейти на доску, показываем ошибку
-                  toast({
-                    title: 'Ошибка перехода на доску',
-                    description: `Не удалось открыть доску. Возможно, у вас нет доступа или доска была удалена.`,
-                    status: 'error',
-                    duration: 5000,
-                    isClosable: true,
-                    position: 'top'
-                  });
-                });
-            }, 300);
-          }
-        })
-        .catch((error) => {
-          console.error('Error marking notification as read:', error);
-        });
+              // Если не удалось перейти на доску, показываем ошибку
+              toast({
+                title: 'Ошибка перехода на доску',
+                description: `Не удалось открыть доску. Возможно, у вас нет доступа или доска была удалена.`,
+                status: 'error',
+                duration: 5000,
+                isClosable: true,
+                position: 'top'
+              });
+            });
+        }, 300);
+      }
     } catch (error) {
       console.error('Error handling notification click:', error);
     }
@@ -145,21 +119,16 @@ const NotificationsMenu: React.FC = () => {
 
   const handleMarkAllAsRead = () => {
     try {
-      dispatch(markAllNotificationsAsRead())
-        .then((result) => {
-          console.log('Marked all as read:', result);
-          toast({
-            title: 'Уведомления прочитаны',
-            description: 'Все уведомления помечены как прочитанные',
-            status: 'success',
-            duration: 3000,
-            isClosable: true,
-            position: 'top-right'
-          });
-        })
-        .catch((error) => {
-          console.error('Error marking all as read:', error);
-        });
+      dispatch(markAllNotificationsAsRead());
+
+      toast({
+        title: 'Уведомления прочитаны',
+        description: 'Все уведомления помечены как прочитанные',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+        position: 'top-right'
+      });
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
     }
@@ -249,12 +218,9 @@ const NotificationsMenu: React.FC = () => {
                     <Box ml={2} w={2} h={2} borderRadius="full" bg="blue.500" mt={1} />
                   )}
                 </Flex>
-                <Text fontSize="xs" color="gray.500" mt={1}>
-                  От: {notification.fromUser || 'Неизвестный отправитель'}
-                </Text>
-                {notification.boardName && (
-                  <Text fontSize="xs" color="blue.500" mt={1}>
-                    Доска: {notification.boardName}
+                {notification.createdAt && (
+                  <Text fontSize="xs" color="gray.500" mt={1}>
+                    {new Date(notification.createdAt).toLocaleString()}
                   </Text>
                 )}
               </Box>

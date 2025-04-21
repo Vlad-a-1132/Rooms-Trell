@@ -1,10 +1,9 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import checkEnvironment from '@/util/check-environment';
 import { BoardSlice } from '@/src/types/boards';
-import { RootState } from '@/src/store';
-import { AxiosError } from 'axios';
+import { BoardState } from '@/src/board';
 
-const initialState = {
+const initialState: BoardState = {
   board: {
     _id: '',
     name: '',
@@ -56,12 +55,12 @@ export const fetchBoard = createAsyncThunk(
   'board/fetch',
   async (_, { rejectWithValue, getState }) => {
     try {
-      const { board } = getState() as RootState;
-      const slug = board._id;
+      const state = getState() as any;
+      const boardId = state.board.board._id;
 
-      console.log(`📝 Fetching board: ${slug}`);
+      console.log(`📝 Fetching board: ${boardId}`);
 
-      const url = `${host}/api/boards/${slug}`;
+      const url = `${host}/api/boards/${boardId}`;
       const response = await fetch(url, {
         method: 'GET',
         headers: {

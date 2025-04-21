@@ -7,34 +7,34 @@ import cardsSlice from '@/src/slices/cards';
 import usersSlice from '@/src/slices/users';
 import notificationsSlice from '@/src/slices/notifications';
 
+const rootReducer = {
+  boards: boardsSlice,
+  board: boardSlice,
+  user: userSlice,
+  columns: columnsSlice,
+  cards: cardsSlice,
+  users: usersSlice,
+  notifications: notificationsSlice
+};
+
 const createStore = (preloadedState = {}) => {
   return configureStore({
-    reducer: {
-      boards: boardsSlice,
-      board: boardSlice,
-      user: userSlice,
-      columns: columnsSlice,
-      cards: cardsSlice,
-      users: usersSlice,
-      notifications: notificationsSlice
-    },
+    reducer: rootReducer,
     preloadedState
   });
 };
 
-const store = configureStore({
-  reducer: {
-    boards: boardsSlice,
-    user: userSlice,
-    board: boardSlice,
-    columns: columnsSlice,
-    cards: cardsSlice,
-    users: usersSlice,
-    notifications: notificationsSlice
-  }
-});
+// Создаем тип RootState на основе возвращаемого типа configureStore
+export type RootState = {
+  boards: ReturnType<typeof boardsSlice>;
+  board: ReturnType<typeof boardSlice>;
+  user: ReturnType<typeof userSlice>;
+  columns: ReturnType<typeof columnsSlice>;
+  cards: ReturnType<typeof cardsSlice>;
+  users: ReturnType<typeof usersSlice>;
+  notifications: ReturnType<typeof notificationsSlice>;
+};
 
-export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch;
+export type AppDispatch = ReturnType<typeof createStore>['dispatch'];
 
 export default createStore;
