@@ -20,7 +20,7 @@ export const fetchBoards = createAsyncThunk('boards/fetchBoards', async (_obj, {
   console.log('Fetching boards for user id:', id);
 
   try {
-    const response = await fetch(`${host}/api/boards?userid=${id}`);
+    const response = await fetch(`${host}/api/boards-proxy?userid=${id}`);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -53,7 +53,7 @@ export const createBoard = createAsyncThunk('board/create', async (_obj, { getSt
     backgroundImage: '/boards/board-background.jpg'
   };
 
-  const url = `${host}/api/boards`;
+  const url = `${host}/api/boards-create`;
 
   const response = await fetch(url, {
     method: 'POST',
