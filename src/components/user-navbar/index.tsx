@@ -29,15 +29,13 @@ const UserNavBar: FC = () => {
     if (user?.isValid) {
       try {
         // Убеждаемся, что у нас есть user_id в cookie для API запросов
-        const userIdCookie = document.cookie
-          .split('; ')
-          .find(row => row.startsWith('user_id='));
-          
+        const userIdCookie = document.cookie.split('; ').find((row) => row.startsWith('user_id='));
+
         if (!userIdCookie) {
           // Если cookie отсутствует, создаем её
           document.cookie = `user_id=${user.id}; path=/; max-age=86400`;
         }
-        
+
         // Загружаем уведомления
         console.log('Loading notifications for user:', user.id);
         dispatch(fetchNotifications());

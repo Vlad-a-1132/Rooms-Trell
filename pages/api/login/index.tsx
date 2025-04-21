@@ -46,25 +46,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const claim = { id: userDetail._id, email: userDetail.email };
         const token = sign({ user: claim }, KEY, { expiresIn: '1h' });
 
-        res.setHeader(
-          'Set-Cookie',
-          [
-            serialize('token', token, {
-              httpOnly: true,
-              secure: process.env.NODE_ENV !== 'development',
-              maxAge: 60 * 60 * 24 * 1000,
-              sameSite: 'strict',
-              path: '/'
-            }),
-            serialize('user_id', userDetail._id, {
-              httpOnly: true,
-              secure: process.env.NODE_ENV !== 'development',
-              maxAge: 60 * 60 * 24 * 1000,
-              sameSite: 'strict',
-              path: '/'
-            })
-          ]
-        );
+        res.setHeader('Set-Cookie', [
+          serialize('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV !== 'development',
+            maxAge: 60 * 60 * 24 * 1000,
+            sameSite: 'strict',
+            path: '/'
+          }),
+          serialize('user_id', userDetail._id, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV !== 'development',
+            maxAge: 60 * 60 * 24 * 1000,
+            sameSite: 'strict',
+            path: '/'
+          })
+        ]);
 
         return res.status(200).json({ message: 'success', token, id: userDetail._id });
       } else {

@@ -18,9 +18,9 @@ import { AiOutlineNotification, AiOutlineCheck, AiOutlineReload } from 'react-ic
 import { useDispatch } from 'react-redux';
 import { useRouter } from 'next/router';
 import { useAppSelector } from '@/src/hooks';
-import { 
-  fetchNotifications, 
-  markNotificationAsRead, 
+import {
+  fetchNotifications,
+  markNotificationAsRead,
   markAllNotificationsAsRead,
   Notification
 } from '@/src/slices/notifications';
@@ -29,19 +29,20 @@ const NotificationsMenu: React.FC = () => {
   const dispatch = useDispatch();
   const router = useRouter();
   const toast = useToast();
-  const { items: notifications = [], unreadCount = 0, status } = useAppSelector((state) => state.notifications) || {};
+  const { items: notifications = [], unreadCount = 0, status } =
+    useAppSelector((state) => state.notifications) || {};
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Загружаем уведомления при монтировании компонента
   useEffect(() => {
     loadNotifications();
-    
+
     // Устанавливаем интервал для периодической проверки новых уведомлений
     const intervalId = setInterval(() => {
       loadNotifications(false);
     }, 30000); // Каждые 30 секунд
-    
+
     return () => clearInterval(intervalId);
   }, []);
 
@@ -51,26 +52,26 @@ const NotificationsMenu: React.FC = () => {
       if (showFeedback) {
         setIsRefreshing(true);
       }
-      
+
       dispatch(fetchNotifications())
         .then((action) => {
           console.log('Fetched notifications:', action.payload);
           if (showFeedback) {
             setIsRefreshing(false);
-            
+
             // Если есть непрочитанные уведомления, показываем тост
-            const unreadItems = Array.isArray(action.payload) 
-              ? action.payload.filter(n => !n.isRead).length 
+            const unreadItems = Array.isArray(action.payload)
+              ? action.payload.filter((n) => !n.isRead).length
               : 0;
-              
+
             if (unreadItems > 0) {
               toast({
-                title: "Новые уведомления",
+                title: 'Новые уведомления',
                 description: `У вас ${unreadItems} непрочитанных уведомлений`,
-                status: "info",
+                status: 'info',
                 duration: 3000,
                 isClosable: true,
-                position: "top-right"
+                position: 'top-right'
               });
             }
           }
@@ -93,47 +94,48 @@ const NotificationsMenu: React.FC = () => {
     try {
       // Проверяем, что notification._id существует
       if (!notification || !notification._id) {
-        console.error("Invalid notification object:", notification);
+        console.error('Invalid notification object:', notification);
         return;
       }
-      
+
       console.log('Handling notification click:', notification);
-      
+
       // Сначала помечаем уведомление как прочитанное
       dispatch(markNotificationAsRead(notification._id))
         .then((result) => {
           console.log('Mark as read result:', result);
-          
+
           // Если уведомление о приглашении в доску, переходим на нее
           if (notification.type === 'board_invite' && notification.boardId) {
             console.log(`Navigating to board: /boards/${notification.boardId}`);
-            
+
             // Закрываем меню перед навигацией
             setIsMenuOpen(false);
-            
+
             // Небольшая задержка перед навигацией, чтобы меню успело закрыться
             setTimeout(() => {
-              router.push(`/boards/${notification.boardId}`)
+              router
+                .push(`/boards/${notification.boardId}`)
                 .then(() => {
-                  console.log("Navigation successful");
+                  console.log('Navigation successful');
                 })
-                .catch(err => {
-                  console.error("Navigation error:", err);
-                  
+                .catch((err) => {
+                  console.error('Navigation error:', err);
+
                   // Если не удалось перейти на доску, показываем ошибку
                   toast({
-                    title: "Ошибка перехода на доску",
+                    title: 'Ошибка перехода на доску',
                     description: `Не удалось открыть доску. Возможно, у вас нет доступа или доска была удалена.`,
-                    status: "error",
+                    status: 'error',
                     duration: 5000,
                     isClosable: true,
-                    position: "top"
+                    position: 'top'
                   });
                 });
             }, 300);
           }
         })
-        .catch(error => {
+        .catch((error) => {
           console.error('Error marking notification as read:', error);
         });
     } catch (error) {
@@ -147,15 +149,15 @@ const NotificationsMenu: React.FC = () => {
         .then((result) => {
           console.log('Marked all as read:', result);
           toast({
-            title: "Уведомления прочитаны",
-            description: "Все уведомления помечены как прочитанные",
-            status: "success",
+            title: 'Уведомления прочитаны',
+            description: 'Все уведомления помечены как прочитанные',
+            status: 'success',
             duration: 3000,
             isClosable: true,
-            position: "top-right"
+            position: 'top-right'
           });
         })
-        .catch(error => {
+        .catch((error) => {
           console.error('Error marking all as read:', error);
         });
     } catch (error) {
@@ -171,12 +173,11 @@ const NotificationsMenu: React.FC = () => {
   const notificationsList = Array.isArray(notifications) ? notifications : [];
 
   return (
-    <Menu 
-      closeOnSelect={false} 
+    <Menu
+      closeOnSelect={false}
       isOpen={isMenuOpen}
       onOpen={() => setIsMenuOpen(true)}
-      onClose={() => setIsMenuOpen(false)}
-    >
+      onClose={() => setIsMenuOpen(false)}>
       <MenuButton
         as={IconButton}
         aria-label="Notifications"
@@ -198,13 +199,15 @@ const NotificationsMenu: React.FC = () => {
       </MenuButton>
       <MenuList maxH="400px" overflowY="auto" minW="300px">
         <Flex justifyContent="space-between" alignItems="center" px={3} py={2}>
-          <Heading as="h4" size="sm">Уведомления</Heading>
+          <Heading as="h4" size="sm">
+            Уведомления
+          </Heading>
           <Flex>
             {unreadCount > 0 && (
-              <Button 
-                size="xs" 
-                onClick={handleMarkAllAsRead} 
-                leftIcon={<AiOutlineCheck />} 
+              <Button
+                size="xs"
+                onClick={handleMarkAllAsRead}
+                leftIcon={<AiOutlineCheck />}
                 colorScheme="blue"
                 variant="ghost"
                 mr={1}>
@@ -232,26 +235,18 @@ const NotificationsMenu: React.FC = () => {
           </Box>
         ) : (
           notificationsList.map((notification, index) => (
-            <MenuItem 
-              key={notification._id || index} 
+            <MenuItem
+              key={notification._id || index}
               onClick={() => handleNotificationClick(notification)}
               bg={notification.isRead ? 'transparent' : 'blue.50'}
-              _hover={{ bg: notification.isRead ? 'gray.100' : 'blue.100' }}
-            >
+              _hover={{ bg: notification.isRead ? 'gray.100' : 'blue.100' }}>
               <Box w="100%">
                 <Flex justifyContent="space-between" alignItems="flex-start">
                   <Text fontWeight={notification.isRead ? 'normal' : 'bold'}>
                     {notification.message || 'Новое уведомление'}
                   </Text>
                   {!notification.isRead && (
-                    <Box 
-                      ml={2} 
-                      w={2} 
-                      h={2} 
-                      borderRadius="full" 
-                      bg="blue.500" 
-                      mt={1} 
-                    />
+                    <Box ml={2} w={2} h={2} borderRadius="full" bg="blue.500" mt={1} />
                   )}
                 </Flex>
                 <Text fontSize="xs" color="gray.500" mt={1}>
@@ -271,4 +266,4 @@ const NotificationsMenu: React.FC = () => {
   );
 };
 
-export default NotificationsMenu; 
+export default NotificationsMenu;

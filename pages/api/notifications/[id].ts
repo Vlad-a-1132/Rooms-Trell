@@ -14,20 +14,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         try {
           // Получить user_id из cookies
           const { user_id } = req.cookies;
-          
+
           if (!user_id) {
             res.status(200).json({ message: 'Unauthorized', success: false });
             return;
           }
-          
+
           const { isRead } = req.body;
-          
+
           // Проверка валидности id
           if (!id || typeof id !== 'string') {
             res.status(200).json({ message: 'Invalid notification ID', success: false });
             return;
           }
-          
+
           let objectId;
           try {
             objectId = new ObjectId(id);
@@ -35,26 +35,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             res.status(200).json({ message: 'Invalid ObjectId format', success: false });
             return;
           }
-          
+
           // Проверяем, что уведомление принадлежит текущему пользователю
           const notification = await db
             .collection('notifications')
             .findOne({ _id: objectId, userId: user_id });
-            
+
           if (!notification) {
             res.status(200).json({ message: 'Notification not found', success: false });
             return;
           }
-          
+
           // Обновляем статус прочтения
           const result = await db
             .collection('notifications')
-            .findOneAndUpdate(
-              { _id: objectId },
-              { $set: { isRead } },
-              { returnDocument: 'after' }
-            );
-            
+            .findOneAndUpdate({ _id: objectId }, { $set: { isRead } }, { returnDocument: 'after' });
+
           if (result.value) {
             res.status(200).json({ ...result.value, success: true });
           } else {
@@ -64,10 +60,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           console.error('Error updating notification:', error);
           res.status(200).json({ message: 'Error updating notification', success: false });
         }
-        
+
         break;
       }
-      
+
       default:
         res.status(200).json({ message: 'Method not allowed', success: false });
         break;
@@ -75,4 +71,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } else {
     res.status(200).json({ message: 'DB connection error', success: false });
   }
-} 
+}

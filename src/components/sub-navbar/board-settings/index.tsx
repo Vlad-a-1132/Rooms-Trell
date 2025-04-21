@@ -36,7 +36,7 @@ const BoardSettings = (): JSX.Element => {
 
   const handleSave = async () => {
     await dispatch(saveBoard());
-    await dispatch(fetchBoard(board._id));
+    await dispatch(fetchBoard());
 
     onClose();
   };

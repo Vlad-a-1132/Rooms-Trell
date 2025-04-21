@@ -23,7 +23,7 @@ import { useAppSelector } from '@/src/hooks';
 import { updateBoardDetail, resetBoard } from '@/src/slices/board';
 import { createBoard, fetchBoards } from '@/src/slices/boards';
 import { AiOutlinePlus, AiOutlineReload } from 'react-icons/ai';
-
+import { unwrapResult } from '@reduxjs/toolkit';
 import shortId from 'shortid';
 
 const Boards = (): JSX.Element => {
@@ -37,26 +37,24 @@ const Boards = (): JSX.Element => {
   const boardRequest = useAppSelector((state) => state.boards.isRequesting);
 
   // Разделяем доски на личные и доски, к которым пользователь приглашен
-  const personalBoards = boards.filter(board => String(board.createdBy) === String(userId));
-  
+  const personalBoards = boards.filter((board) => String(board.createdBy) === String(userId));
+
   // Улучшенная логика для поиска приглашенных досок
-  const invitedBoards = boards.filter(board => {
+  const invitedBoards = boards.filter((board) => {
     // Если это личная доска, пропускаем
     if (String(board.createdBy) === String(userId)) {
       return false;
     }
-    
+
     // Проверяем наличие пользователя в массиве users
     if (!board.users) {
       return false;
     }
-    
+
     // Преобразуем ID пользователя и все ID в массиве users в строки для корректного сравнения
     const userIdStr = String(userId);
-    const userIds = Array.isArray(board.users) 
-      ? board.users.map(id => String(id))
-      : [];
-    
+    const userIds = Array.isArray(board.users) ? board.users.map((id) => String(id)) : [];
+
     return userIds.includes(userIdStr);
   });
 
@@ -66,10 +64,10 @@ const Boards = (): JSX.Element => {
     console.log('All boards:', boards);
     console.log('Personal boards:', personalBoards);
     console.log('Invited boards:', invitedBoards);
-    
+
     // Проверка на корректность фильтрации
     if (boards.length > 0) {
-      boards.forEach(board => {
+      boards.forEach((board) => {
         console.log(`Board ${board.name}:`, {
           id: board._id,
           createdBy: board.createdBy,
@@ -103,30 +101,23 @@ const Boards = (): JSX.Element => {
   };
 
   const handleRefresh = async () => {
-    console.log("Refreshing boards...");
+    console.log('Refreshing boards...');
     try {
       // Сбрасываем состояние досок перед загрузкой
       dispatch({ type: 'boards/resetBoards' });
-      
-      // Загружаем доски заново
-      const result = await dispatch(fetchBoards());
-      
-      console.log("Boards refreshed:", result);
-      
-      // Получаем обновленные доски
-      const refreshedBoards = result.payload;
-      console.log("Updated boards count:", refreshedBoards?.length || 0);
-      
-      if (refreshedBoards?.length > 0) {
-        // Проверяем, есть ли доски с текущим пользователем в users
-        const sharedBoardsCount = refreshedBoards.filter(
-          board => board.createdBy !== userId && board.users?.includes(userId)
-        ).length;
-        
-        console.log("Shared boards count:", sharedBoardsCount);
-      }
+
+      // Загружаем доски заново - просто вызываем dispatch и игнорируем возвращаемое значение
+      await dispatch(fetchBoards());
+
+      // После того как доски загружены, они уже обновлены в состоянии Redux
+      console.log(
+        'Boards refreshed. Personal:',
+        personalBoards.length,
+        'Invited:',
+        invitedBoards.length
+      );
     } catch (error) {
-      console.error("Error refreshing boards:", error);
+      console.error('Error refreshing boards:', error);
     }
   };
 
@@ -141,7 +132,7 @@ const Boards = (): JSX.Element => {
           mt="1rem">
           Create a board
         </Button>
-        
+
         <Tooltip label="Refresh boards list" placement="top">
           <Button
             onClick={handleRefresh}
@@ -162,15 +153,23 @@ const Boards = (): JSX.Element => {
     if (!boardsList || boardsList.length === 0) {
       return title ? (
         <>
-          <Heading as="h3" size="md" mt="2rem">{title}</Heading>
-          <Text color="gray.500" mt="1rem">No boards found</Text>
+          <Heading as="h3" size="md" mt="2rem">
+            {title}
+          </Heading>
+          <Text color="gray.500" mt="1rem">
+            No boards found
+          </Text>
         </>
       ) : null;
     }
 
     return (
       <>
-        {title && <Heading as="h3" size="md" mt="2rem">{title}</Heading>}
+        {title && (
+          <Heading as="h3" size="md" mt="2rem">
+            {title}
+          </Heading>
+        )}
         <Box mt="1rem" display="flex" flexWrap="wrap">
           {boardsList.map((board, index) => (
             <Link
@@ -222,11 +221,7 @@ const Boards = (): JSX.Element => {
           <ModalHeader>Create board</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <Input
-              value={board.name}
-              onChange={(e) => handleChange(e)}
-              placeholder="Board name"
-            />
+            <Input value={board.name} onChange={(e) => handleChange(e)} placeholder="Board name" />
           </ModalBody>
           <ModalFooter>
             <Button onClick={handleCreate} isLoading={boardRequest} loadingText="Creating board">
@@ -235,11 +230,11 @@ const Boards = (): JSX.Element => {
           </ModalFooter>
         </ModalContent>
       </Modal>
-      {renderBoardsList(personalBoards, "My Boards")}
+      {renderBoardsList(personalBoards, 'My Boards')}
       {invitedBoards.length > 0 && (
         <>
           <Divider my="2rem" />
-          {renderBoardsList(invitedBoards, "Shared With Me")}
+          {renderBoardsList(invitedBoards, 'Shared With Me')}
         </>
       )}
     </Box>

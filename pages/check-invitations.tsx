@@ -1,14 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Button,
-  Heading,
-  Text,
-  Flex,
-  Stack,
-  Divider,
-  useToast
-} from '@chakra-ui/react';
+import { Box, Button, Heading, Text, Flex, Stack, Divider, useToast } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import withAuth from '@/src/hoc/with-auth';
 import withStore from '@/src/hoc/with-store';
@@ -37,7 +28,7 @@ const CheckInvitations = () => {
       const response = await fetch(`${host}/api/debug-boards`);
       const data = await response.json();
       console.log('Debug data:', data);
-      
+
       setBoards(data.allBoards || []);
       setPersonalBoards(data.personalBoards || []);
       setInvitedBoards(data.invitedBoards || []);
@@ -48,7 +39,7 @@ const CheckInvitations = () => {
         description: 'Не удалось загрузить доски',
         status: 'error',
         duration: 5000,
-        isClosable: true,
+        isClosable: true
       });
     } finally {
       setLoading(false);
@@ -61,16 +52,16 @@ const CheckInvitations = () => {
       const response = await fetch(`${host}/api/fix-invitation?boardId=${boardId}`);
       const data = await response.json();
       console.log('Fix result:', data);
-      
+
       if (data.status === 200) {
         toast({
           title: 'Успешно',
           description: data.message,
           status: 'success',
           duration: 5000,
-          isClosable: true,
+          isClosable: true
         });
-        
+
         // Обновляем список досок
         await fetchBoards();
       } else {
@@ -79,7 +70,7 @@ const CheckInvitations = () => {
           description: data.message || 'Не удалось добавить пользователя в доску',
           status: 'error',
           duration: 5000,
-          isClosable: true,
+          isClosable: true
         });
       }
     } catch (error) {
@@ -89,7 +80,7 @@ const CheckInvitations = () => {
         description: 'Не удалось добавить пользователя в доску',
         status: 'error',
         duration: 5000,
-        isClosable: true,
+        isClosable: true
       });
     }
   };
@@ -103,7 +94,7 @@ const CheckInvitations = () => {
     <Box p={5}>
       <Heading mb={4}>Проверка приглашений в доски</Heading>
       <Text mb={4}>Используйте эту страницу для проверки и исправления приглашений в доски</Text>
-      
+
       <Flex mb={4}>
         <Button colorScheme="blue" mr={2} onClick={fetchBoards} isLoading={loading}>
           Обновить данные
@@ -112,17 +103,19 @@ const CheckInvitations = () => {
           Вернуться к доскам
         </Button>
       </Flex>
-      
+
       <Divider my={6} />
-      
+
       <Text>ID текущего пользователя: {userId}</Text>
-      
-      <Heading size="md" mt={6} mb={3}>Личные доски ({personalBoards.length})</Heading>
+
+      <Heading size="md" mt={6} mb={3}>
+        Личные доски ({personalBoards.length})
+      </Heading>
       {personalBoards.length === 0 ? (
         <Text color="gray.500">У вас нет личных досок</Text>
       ) : (
         <Stack spacing={3}>
-          {personalBoards.map(board => (
+          {personalBoards.map((board) => (
             <Box key={board.id} p={3} shadow="md" borderWidth="1px" borderRadius="md">
               <Heading size="sm">{board.name}</Heading>
               <Text fontSize="sm">ID: {board.id}</Text>
@@ -130,13 +123,15 @@ const CheckInvitations = () => {
           ))}
         </Stack>
       )}
-      
-      <Heading size="md" mt={6} mb={3}>Доски с приглашениями ({invitedBoards.length})</Heading>
+
+      <Heading size="md" mt={6} mb={3}>
+        Доски с приглашениями ({invitedBoards.length})
+      </Heading>
       {invitedBoards.length === 0 ? (
         <Text color="gray.500">У вас нет приглашений в доски</Text>
       ) : (
         <Stack spacing={3}>
-          {invitedBoards.map(board => (
+          {invitedBoards.map((board) => (
             <Box key={board.id} p={3} shadow="md" borderWidth="1px" borderRadius="md">
               <Heading size="sm">{board.name}</Heading>
               <Text fontSize="sm">ID: {board.id}</Text>
@@ -144,24 +139,25 @@ const CheckInvitations = () => {
           ))}
         </Stack>
       )}
-      
+
       <Divider my={6} />
-      
-      <Heading size="md" mt={6} mb={3}>Все доски в системе ({boards.length})</Heading>
+
+      <Heading size="md" mt={6} mb={3}>
+        Все доски в системе ({boards.length})
+      </Heading>
       <Stack spacing={4}>
-        {boards.map(board => (
+        {boards.map((board) => (
           <Box key={board.id} p={4} shadow="md" borderWidth="1px" borderRadius="md">
             <Heading size="sm">{board.name}</Heading>
             <Text fontSize="sm">ID: {board.id}</Text>
             <Text fontSize="sm">Создатель: {board.createdBy}</Text>
             <Text fontSize="sm">Пользователи: {board.users.join(', ') || 'нет'}</Text>
-            <Button 
-              size="sm" 
-              colorScheme="blue" 
-              mt={2} 
+            <Button
+              size="sm"
+              colorScheme="blue"
+              mt={2}
               onClick={() => addUserToBoard(board.id)}
-              isDisabled={board.users.includes(userId)}
-            >
+              isDisabled={board.users.includes(userId)}>
               {board.users.includes(userId) ? 'Вы уже добавлены' : 'Добавить себя в доску'}
             </Button>
           </Box>
@@ -175,4 +171,4 @@ const CheckInvitationsWithSidebar = withSidebar(CheckInvitations, { page: 'check
 const CheckInvitationsWithAuth = withAuth(CheckInvitationsWithSidebar);
 const CheckInvitationsWithStore = withStore(CheckInvitationsWithAuth);
 
-export default CheckInvitationsWithStore; 
+export default CheckInvitationsWithStore;

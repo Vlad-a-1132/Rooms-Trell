@@ -11,20 +11,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       case 'GET': {
         // Получить user_id из cookies или session
         const { user_id } = req.cookies;
-        
+
         if (!user_id) {
           // Возвращаем пустой массив вместо ошибки авторизации
           res.status(200).json([]);
           return;
         }
-        
+
         try {
           const notifications = await db
             .collection('notifications')
             .find({ userId: user_id })
             .sort({ createdAt: -1 })
             .toArray();
-            
+
           // Возвращаем пустой массив, если notifications равен null или undefined
           res.status(200).json(notifications || []);
         } catch (error) {
@@ -32,10 +32,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           // Возвращаем пустой массив вместо ошибки
           res.status(200).json([]);
         }
-        
+
         break;
       }
-      
+
       default:
         res.status(405).json([]);
         break;
@@ -44,4 +44,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Возвращаем пустой массив вместо ошибки соединения с БД
     res.status(200).json([]);
   }
-} 
+}

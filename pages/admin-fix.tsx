@@ -26,33 +26,35 @@ const AdminFix = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!boardId || !userId) {
       toast({
         title: 'Ошибка',
         description: 'Пожалуйста, введите ID доски и ID пользователя',
         status: 'error',
         duration: 5000,
-        isClosable: true,
+        isClosable: true
       });
       return;
     }
-    
+
     try {
       setLoading(true);
-      
-      const response = await fetch(`${host}/api/fix-board-users?boardId=${boardId}&targetUserId=${userId}`);
+
+      const response = await fetch(
+        `${host}/api/fix-board-users?boardId=${boardId}&targetUserId=${userId}`
+      );
       const data = await response.json();
-      
+
       if (data.status === 200) {
         toast({
           title: 'Успешно',
           description: data.message,
           status: 'success',
           duration: 5000,
-          isClosable: true,
+          isClosable: true
         });
-        
+
         // Очищаем форму
         setBoardId('');
         setUserId('');
@@ -62,7 +64,7 @@ const AdminFix = () => {
           description: data.message || 'Не удалось добавить пользователя в доску',
           status: 'error',
           duration: 5000,
-          isClosable: true,
+          isClosable: true
         });
       }
     } catch (error) {
@@ -72,7 +74,7 @@ const AdminFix = () => {
         description: 'Не удалось добавить пользователя в доску',
         status: 'error',
         duration: 5000,
-        isClosable: true,
+        isClosable: true
       });
     } finally {
       setLoading(false);
@@ -91,36 +93,31 @@ const AdminFix = () => {
     <Box p={5}>
       <Heading mb={4}>Админ-панель: добавление пользователя в доску</Heading>
       <Text mb={4}>Используйте эту страницу для ручного добавления пользователя в доску</Text>
-      
+
       <VStack as="form" spacing={4} align="flex-start" onSubmit={handleSubmit}>
         <FormControl isRequired>
           <FormLabel>ID доски</FormLabel>
-          <Input 
-            value={boardId} 
-            onChange={(e) => setBoardId(e.target.value)} 
-            placeholder="Введите ID доски" 
+          <Input
+            value={boardId}
+            onChange={(e) => setBoardId(e.target.value)}
+            placeholder="Введите ID доски"
           />
         </FormControl>
-        
+
         <FormControl isRequired>
           <FormLabel>ID пользователя</FormLabel>
-          <Input 
-            value={userId} 
-            onChange={(e) => setUserId(e.target.value)} 
-            placeholder="Введите ID пользователя" 
+          <Input
+            value={userId}
+            onChange={(e) => setUserId(e.target.value)}
+            placeholder="Введите ID пользователя"
           />
         </FormControl>
-        
-        <Button 
-          type="submit" 
-          colorScheme="blue" 
-          isLoading={loading}
-          loadingText="Добавление..."
-        >
+
+        <Button type="submit" colorScheme="blue" isLoading={loading} loadingText="Добавление...">
           Добавить пользователя в доску
         </Button>
       </VStack>
-      
+
       <Box mt={8}>
         <Button onClick={goToCheckInvitations} mr={4}>
           Перейти к проверке приглашений
@@ -137,4 +134,4 @@ const AdminFixWithSidebar = withSidebar(AdminFix, { page: 'admin-fix' });
 const AdminFixWithAuth = withAuth(AdminFixWithSidebar);
 const AdminFixWithStore = withStore(AdminFixWithAuth);
 
-export default AdminFixWithStore; 
+export default AdminFixWithStore;

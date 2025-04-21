@@ -36,7 +36,12 @@ const withSidebar = (App, props) => {
         { path: '/home', buttonName: 'Home', page: 'home', icon: AiOutlineHome },
         { path: '/boards', buttonName: 'Boards', page: 'boards', icon: AiOutlineCreditCard },
         { path: '/templates', buttonName: 'Templates', page: 'templates', icon: AiOutlineBuild },
-        { path: '/check-invitations', buttonName: 'Check Invitations', page: 'check-invitations', icon: AiOutlineUser },
+        {
+          path: '/check-invitations',
+          buttonName: 'Check Invitations',
+          page: 'check-invitations',
+          icon: AiOutlineUser
+        },
         { path: '/admin-fix', buttonName: 'Admin Fix', page: 'admin-fix', icon: AiOutlineTool },
         { path: '/settings', buttonName: 'Settings', page: 'settings', icon: AiOutlineSetting }
       ];

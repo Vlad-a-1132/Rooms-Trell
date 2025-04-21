@@ -20,12 +20,12 @@ const getUserIdFromRequest = async (req: NextApiRequest) => {
     // Если нет, пробуем получить из JWT токена
     const cookies = parse(req.headers.cookie || '');
     const token = cookies.token;
-    
+
     if (token) {
       const decoded = verify(token, KEY) as { user: { id: string } };
       return decoded.user.id;
     }
-    
+
     return null;
   } catch (error) {
     console.error('Error extracting user_id:', error);
@@ -87,21 +87,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       case 'POST': {
         try {
           const { email, boardId } = req.body;
-          
+
           if (!email || !boardId) {
-            return res.status(400).json({ 
-              message: 'Email and boardId are required', 
-              status: 400 
+            return res.status(400).json({
+              message: 'Email and boardId are required',
+              status: 400
             });
           }
 
           // Получаем текущий user_id из запроса
           const currentUserId = await getUserIdFromRequest(req);
-          
+
           if (!currentUserId) {
-            return res.status(401).json({ 
-              message: 'Unauthorized - Could not identify user', 
-              status: 401 
+            return res.status(401).json({
+              message: 'Unauthorized - Could not identify user',
+              status: 401
             });
           }
 
@@ -117,18 +117,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           // Получаем информацию о доске и текущем пользователе
           const board = await db.collection('boards').findOne({ _id: boardId });
           const currentUser = await db.collection('users').findOne({ _id: currentUserId });
-          
+
           if (!board) {
-            return res.status(404).json({ 
-              message: 'Board not found', 
-              status: 404 
+            return res.status(404).json({
+              message: 'Board not found',
+              status: 404
             });
           }
 
           if (!currentUser) {
-            return res.status(404).json({ 
-              message: 'Current user not found', 
-              status: 404 
+            return res.status(404).json({
+              message: 'Current user not found',
+              status: 404
             });
           }
 
@@ -136,18 +136,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const invitedUser = await db.collection('users').findOne({ email });
 
           // Сохраняем токен для приглашения
-          await db.collection('token').insertOne({ 
-            token, 
-            userId: id, 
-            status: 'valid', 
-            email, 
+          await db.collection('token').insertOne({
+            token,
+            userId: id,
+            status: 'valid',
+            email,
             boardId,
             createdBy: currentUserId,
             createdAt: new Date()
           });
 
           let notificationCreated = false;
-          
+
           // Если пользователь уже существует, создаем для него уведомление
           if (invitedUser) {
             const notificationData = {
@@ -168,19 +168,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
           // Пытаемся отправить email, но не прерываем процесс, если не удалось
           const emailResult = await sendMail(email, emailData, board.name);
-          
+
           // Возвращаем успешный результат, даже если email не отправлен
-          return res.status(200).json({ 
-            message: 'Invitation processed successfully', 
+          return res.status(200).json({
+            message: 'Invitation processed successfully',
             status: 200,
             notificationCreated,
             emailSent: emailResult.emailSent
           });
-          
         } catch (error) {
           console.error('Error in invitation process:', error);
-          return res.status(500).json({ 
-            message: 'Internal server error', 
+          return res.status(500).json({
+            message: 'Internal server error',
             status: 500,
             error: String(error)
           });

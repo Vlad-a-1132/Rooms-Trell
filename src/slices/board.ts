@@ -76,12 +76,12 @@ export const fetchBoard = createAsyncThunk(
       const data = await response.json();
       return data;
     } catch (error) {
-      console.log("🚀 ~ file: board.ts ~ fetchBoard ~ error", error);
+      console.log('🚀 ~ file: board.ts ~ fetchBoard ~ error', error);
       if (error instanceof Error) {
         return rejectWithValue(error.message);
       }
-      
-      return rejectWithValue("An error occurred while fetching the board.");
+
+      return rejectWithValue('An error occurred while fetching the board.');
     }
   }
 );

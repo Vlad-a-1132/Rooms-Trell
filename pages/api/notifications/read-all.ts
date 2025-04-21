@@ -12,55 +12,52 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         try {
           // Получить user_id из cookies
           const { user_id } = req.cookies;
-          
+
           if (!user_id) {
-            res.status(200).json({ 
-              message: 'Unauthorized', 
+            res.status(200).json({
+              message: 'Unauthorized',
               success: false,
-              modifiedCount: 0 
+              modifiedCount: 0
             });
             return;
           }
-          
+
           // Обновить все непрочитанные уведомления пользователя
           const result = await db
             .collection('notifications')
-            .updateMany(
-              { userId: user_id, isRead: false },
-              { $set: { isRead: true } }
-            );
-            
-          res.status(200).json({ 
+            .updateMany({ userId: user_id, isRead: false }, { $set: { isRead: true } });
+
+          res.status(200).json({
             message: 'All notifications marked as read',
             success: true,
-            modifiedCount: result ? result.modifiedCount : 0 
+            modifiedCount: result ? result.modifiedCount : 0
           });
         } catch (error) {
           console.error('Error updating notifications:', error);
-          res.status(200).json({ 
-            message: 'Error updating notifications', 
+          res.status(200).json({
+            message: 'Error updating notifications',
             success: false,
             modifiedCount: 0,
             error: String(error)
           });
         }
-        
+
         break;
       }
-      
+
       default:
-        res.status(200).json({ 
-          message: 'Method not allowed', 
+        res.status(200).json({
+          message: 'Method not allowed',
           success: false,
-          modifiedCount: 0 
+          modifiedCount: 0
         });
         break;
     }
   } else {
-    res.status(200).json({ 
-      message: 'DB connection error', 
+    res.status(200).json({
+      message: 'DB connection error',
       success: false,
-      modifiedCount: 0 
+      modifiedCount: 0
     });
   }
-} 
+}

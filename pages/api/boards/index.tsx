@@ -4,12 +4,12 @@ import { connectToDatabase } from '@/util/mongodb';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   try {
-    console.log("Boards API request:", {
+    console.log('Boards API request:', {
       method: req.method,
       query: req.query,
       cookies: req.cookies
     });
-    
+
     const { db, client } = await connectToDatabase();
 
     if (client.isConnected()) {
@@ -36,7 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         case 'GET': {
           const { userid } = req.query;
-          console.log("Fetching boards for user:", userid);
+          console.log('Fetching boards for user:', userid);
 
           // Получаем личные доски
           const boards = await db
@@ -44,8 +44,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             .find({ createdBy: userid })
             .limit(30)
             .toArray();
-          
-          console.log("Found personal boards:", boards.length);
+
+          console.log('Found personal boards:', boards.length);
 
           // Получаем доски, в которые пользователь был приглашен
           // Используем $in оператор для поиска пользователя в массиве users
@@ -57,13 +57,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               createdBy: { $ne: userid } // Исключаем доски, созданные пользователем
             })
             .toArray();
-          
-          console.log("Found invited boards:", invitedBoards.length);
-          
+
+          console.log('Found invited boards:', invitedBoards.length);
+
           // Проверка содержимого invitedBoards
           if (invitedBoards.length > 0) {
-            invitedBoards.forEach(board => {
-              console.log("Invited board:", {
+            invitedBoards.forEach((board) => {
+              console.log('Invited board:', {
                 id: board._id,
                 name: board.name,
                 createdBy: board.createdBy,
@@ -72,10 +72,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             });
           } else {
             // Проверим содержимое всех досок, чтобы увидеть формат users
-            console.log("Checking all boards to find invitation format...");
+            console.log('Checking all boards to find invitation format...');
             const allBoards = await db.collection('boards').find({}).limit(10).toArray();
-            
-            allBoards.forEach(board => {
+
+            allBoards.forEach((board) => {
               if (board.users && board.users.length > 0) {
                 console.log(`Board ${board.name} users:`, {
                   usersArray: board.users,
@@ -87,7 +87,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
 
           const updatedBoards = boards.concat(invitedBoards);
-          console.log("Total boards:", updatedBoards.length);
+          console.log('Total boards:', updatedBoards.length);
 
           res.send(updatedBoards);
 
@@ -98,11 +98,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           break;
       }
     } else {
-      console.error("MongoDB connection error");
+      console.error('MongoDB connection error');
       res.send([]);
     }
   } catch (error) {
-    console.error("Error in boards API:", error);
+    console.error('Error in boards API:', error);
     res.status(500).send({ error: String(error) });
   }
 }

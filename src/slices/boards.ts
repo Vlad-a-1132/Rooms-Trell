@@ -17,26 +17,26 @@ export const fetchBoards = createAsyncThunk('boards/fetchBoards', async (_obj, {
   const { user } = getState() as { user: SingleUser };
   const id = user.id;
 
-  console.log("Fetching boards for user id:", id);
-  
+  console.log('Fetching boards for user id:', id);
+
   try {
     const response = await fetch(`${host}/api/boards?userid=${id}`);
-    
+
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Error fetching boards:", errorText);
+      console.error('Error fetching boards:', errorText);
       throw new Error(errorText);
     }
-    
+
     const data = await response.json();
-    console.log("Received boards data:", {
+    console.log('Received boards data:', {
       total: data.length,
-      boards: data.map(b => ({ id: b._id, name: b.name, createdBy: b.createdBy, users: b.users }))
+      boards: data.map((b) => ({ id: b._id, name: b.name, createdBy: b.createdBy, users: b.users }))
     });
-    
+
     return data;
   } catch (error) {
-    console.error("Error in fetchBoards:", error);
+    console.error('Error in fetchBoards:', error);
     throw error;
   }
 });

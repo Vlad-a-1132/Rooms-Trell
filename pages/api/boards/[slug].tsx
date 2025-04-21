@@ -4,9 +4,9 @@ import { connectToDatabase } from '@/util/mongodb';
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   try {
     const { slug } = req.query;
-    console.log('API boards/[slug] request:', { 
-      method: req.method, 
-      slug, 
+    console.log('API boards/[slug] request:', {
+      method: req.method,
+      slug,
       cookies: req.cookies,
       headers: {
         cookie: req.headers.cookie,
@@ -27,30 +27,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       case 'GET': {
         console.log(`Fetching board with ID: ${slug}`);
         const board = await db.collection('boards').findOne({ _id: slug });
-        
+
         if (!board) {
           console.error(`Board with ID ${slug} not found`);
           return res.status(404).json({ message: 'Board not found', status: 404 });
         }
-        
-        console.log(`Found board: `, { 
-          id: board._id, 
-          name: board.name, 
+
+        console.log(`Found board: `, {
+          id: board._id,
+          name: board.name,
           createdBy: board.createdBy,
           users: board.users || []
         });
-        
+
         // Проверяем, есть ли у текущего пользователя доступ к доске
         const userId = req.cookies.user_id;
-        const hasAccess = !userId || 
-          board.createdBy === userId || 
-          (board.users && board.users.includes(userId));
-        
+        const hasAccess =
+          !userId || board.createdBy === userId || (board.users && board.users.includes(userId));
+
         if (!hasAccess) {
           console.warn(`User ${userId} has no access to board ${slug}`);
           // Возвращаем доску в любом случае, решение о доступе может быть принято на клиенте
         }
-        
+
         return res.status(200).json(board);
       }
 
@@ -68,23 +67,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         const result = await db.collection('boards').updateOne({ _id: slug }, { $set: data });
         console.log(`Board update result:`, result);
-        
+
         if (result.matchedCount === 0) {
           return res.status(404).json({ message: 'Board not found', status: 404 });
         }
-        
+
         return res.status(200).json({ success: true, ...result });
       }
 
       case 'DELETE': {
         console.log(`Deleting board with ID: ${slug}`);
-        
+
         const cardsResult = await db.collection('cards').deleteMany({ boardId: slug });
         console.log(`Deleted cards:`, cardsResult);
-        
+
         const columnsResult = await db.collection('columns').deleteMany({ boardId: slug });
         console.log(`Deleted columns:`, columnsResult);
-        
+
         const boardResult = await db.collection('boards').deleteOne({ _id: slug });
         console.log(`Deleted board:`, boardResult);
 
@@ -92,8 +91,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           return res.status(404).json({ message: 'Board not found', status: 404 });
         }
 
-        return res.status(200).json({ 
-          message: 'Board deleted with all columns and cards', 
+        return res.status(200).json({
+          message: 'Board deleted with all columns and cards',
           deletedCards: cardsResult.deletedCount,
           deletedColumns: columnsResult.deletedCount
         });
@@ -105,10 +104,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   } catch (error) {
     console.error('Error in boards/[slug] API:', error);
-    return res.status(500).json({ 
-      message: 'Internal server error', 
-      status: 500, 
-      error: String(error) 
+    return res.status(500).json({
+      message: 'Internal server error',
+      status: 500,
+      error: String(error)
     });
   }
 }

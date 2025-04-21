@@ -29,14 +29,11 @@ const initialState: NotificationsState = {
 
 const host = checkEnvironment();
 
-export const fetchNotifications = createAsyncThunk(
-  'notifications/fetchNotifications',
-  async () => {
-    const response = await fetch(`${host}/api/notifications`);
-    const data = await response.json();
-    return data;
-  }
-);
+export const fetchNotifications = createAsyncThunk('notifications/fetchNotifications', async () => {
+  const response = await fetch(`${host}/api/notifications`);
+  const data = await response.json();
+  return data;
+});
 
 export const markNotificationAsRead = createAsyncThunk(
   'notifications/markAsRead',
@@ -80,7 +77,9 @@ const notificationsSlice = createSlice({
         state.status = 'succeeded';
         const notificationsArray = Array.isArray(action.payload) ? action.payload : [];
         state.items = notificationsArray;
-        state.unreadCount = notificationsArray.filter((notification: Notification) => !notification.isRead).length;
+        state.unreadCount = notificationsArray.filter(
+          (notification: Notification) => !notification.isRead
+        ).length;
       })
       .addCase(fetchNotifications.rejected, (state, action) => {
         state.status = 'failed';
@@ -88,18 +87,18 @@ const notificationsSlice = createSlice({
       })
       .addCase(markNotificationAsRead.fulfilled, (state, action) => {
         if (action.payload && action.payload._id) {
-          const index = state.items.findIndex(item => item._id === action.payload._id);
+          const index = state.items.findIndex((item) => item._id === action.payload._id);
           if (index !== -1) {
             state.items[index] = action.payload;
-            state.unreadCount = state.items.filter(notification => !notification.isRead).length;
+            state.unreadCount = state.items.filter((notification) => !notification.isRead).length;
           }
         }
       })
       .addCase(markAllNotificationsAsRead.fulfilled, (state) => {
-        state.items = state.items.map(item => ({ ...item, isRead: true }));
+        state.items = state.items.map((item) => ({ ...item, isRead: true }));
         state.unreadCount = 0;
       });
   }
 });
 
-export default notificationsSlice.reducer; 
+export default notificationsSlice.reducer;
