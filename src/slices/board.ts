@@ -1,6 +1,8 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import checkEnvironment from '@/util/check-environment';
 import { BoardSlice } from '@/src/types/boards';
+import { RootState } from '@/src/store';
+import { AxiosError } from 'axios';
 
 const initialState = {
   board: {
@@ -50,27 +52,39 @@ export const saveBoard = createAsyncThunk('board/save', async (obj, { getState }
   return json;
 });
 
-export const fetchBoard = createAsyncThunk('boards/fetchBoard', async (slug) => {
-  console.log('Fetching board with slug:', slug);
-  const host = checkEnvironment();
-  const boardUrl = `${host}/api/boards/${slug}`;
-  
-  try {
-    const response = await fetch(boardUrl);
-    console.log('Board API response status:', response.status);
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch board: ${response.status} ${response.statusText}`);
+export const fetchBoard = createAsyncThunk(
+  'board/fetch',
+  async (_, { rejectWithValue, getState }) => {
+    try {
+      const { board } = getState() as RootState;
+      const slug = board._id;
+
+      console.log(`📝 Fetching board: ${slug}`);
+
+      const url = `${host}/api/boards/${slug}`;
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.log("🚀 ~ file: board.ts ~ fetchBoard ~ error", error);
+      if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      }
+      
+      return rejectWithValue("An error occurred while fetching the board.");
     }
-    
-    const data = await response.json();
-    console.log('Fetched board data:', data);
-    return data;
-  } catch (error) {
-    console.error('Error fetching board:', error);
-    throw error;
   }
-});
+);
 
 export const deleteBoard = createAsyncThunk('board/delete', async (obj, { getState }) => {
   const { board } = getState() as { board: BoardSlice };

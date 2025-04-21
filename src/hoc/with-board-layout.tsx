@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { setOrGetStore } from '@/util/initialise-store';
 import { fetchColumns } from '@/src/slices/columns';
-import { fetchBoard } from '@/src/slices/board';
+import { fetchBoard, updateBoardDetail } from '@/src/slices/board';
 import { fetchCards } from '@/src/slices/cards';
 import { resetServerContext } from 'react-beautiful-dnd';
 
@@ -25,7 +25,10 @@ const WithBoardLayout = (App) => {
       const reduxStore = setOrGetStore(ctx.reduxState);
       const { dispatch } = reduxStore;
 
-      await dispatch(fetchBoard(ctx.query.slug.toString()));
+      // Сначала обновляем _id доски в состоянии
+      await dispatch(updateBoardDetail({ type: '_id', value: ctx.query.slug.toString() }));
+      // Затем вызываем fetchBoard без параметров
+      await dispatch(fetchBoard());
       await dispatch(fetchColumns());
       await dispatch(fetchCards());
 
