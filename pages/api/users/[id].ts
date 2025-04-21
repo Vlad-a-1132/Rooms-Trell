@@ -7,11 +7,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   async function getUserHandler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
     if (req.method === 'GET') {
       try {
-        const { id } = req.query;
-        console.log('[API] Запрос данных пользователя с ID:', id);
+        const { slug } = req.query;
+        console.log('[API] Запрос данных пользователя с ID:', slug);
 
         // Отправляем запрос на оригинальный сервер
-        const response = await fetch(`https://trello-clone-one.vercel.app/api/users/${id}`);
+        const response = await fetch(`https://trello-clone-one.vercel.app/api/users/${slug}`);
 
         // Проверяем ответ
         if (!response.ok) {
