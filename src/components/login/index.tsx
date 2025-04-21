@@ -68,6 +68,7 @@ const Login = () => {
         window.location.href = `${window.location.origin}/home`;
       }
     } else if (result.message === 'success') {
+      document.cookie = `user_id=${result.id}; path=/; max-age=86400`;
       window.location.href = `${window.location.origin}/home`;
     }
 

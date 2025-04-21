@@ -5,6 +5,7 @@ import boardSlice from '@/src/slices/board';
 import columnsSlice from '@/src/slices/columns';
 import cardsSlice from '@/src/slices/cards';
 import usersSlice from '@/src/slices/users';
+import notificationsSlice from '@/src/slices/notifications';
 
 const createStore = (preloadedState = {}) => {
   return configureStore({
@@ -14,7 +15,8 @@ const createStore = (preloadedState = {}) => {
       user: userSlice,
       columns: columnsSlice,
       cards: cardsSlice,
-      users: usersSlice
+      users: usersSlice,
+      notifications: notificationsSlice
     },
     preloadedState
   });
@@ -27,7 +29,8 @@ const store = configureStore({
     board: boardSlice,
     columns: columnsSlice,
     cards: cardsSlice,
-    users: usersSlice
+    users: usersSlice,
+    notifications: notificationsSlice
   }
 });
 

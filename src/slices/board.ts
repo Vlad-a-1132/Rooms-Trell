@@ -50,13 +50,26 @@ export const saveBoard = createAsyncThunk('board/save', async (obj, { getState }
   return json;
 });
 
-export const fetchBoard = createAsyncThunk('board/get', async (slug: string) => {
-  const url = `${host}/api/boards/${slug}`;
-
-  const response = await fetch(url);
-  const json = await response.json();
-
-  return json;
+export const fetchBoard = createAsyncThunk('boards/fetchBoard', async (slug) => {
+  console.log('Fetching board with slug:', slug);
+  const host = checkEnvironment();
+  const boardUrl = `${host}/api/boards/${slug}`;
+  
+  try {
+    const response = await fetch(boardUrl);
+    console.log('Board API response status:', response.status);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch board: ${response.status} ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    console.log('Fetched board data:', data);
+    return data;
+  } catch (error) {
+    console.error('Error fetching board:', error);
+    throw error;
+  }
 });
 
 export const deleteBoard = createAsyncThunk('board/delete', async (obj, { getState }) => {

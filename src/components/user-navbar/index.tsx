@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { FC, useEffect } from 'react';
 import {
   Button,
   Box,
@@ -8,16 +8,44 @@ import {
   MenuItem,
   MenuList,
   Avatar,
-  Text
+  Text,
+  Flex
 } from '@chakra-ui/react';
 import Link from 'next/link';
 import PropTypes from 'prop-types';
 import { useAppSelector } from '@/src/hooks';
+import { useDispatch } from 'react-redux';
 import { AiOutlineHome } from 'react-icons/ai';
 import { SiTrello } from 'react-icons/si';
+import NotificationsMenu from './notifications';
+import { fetchNotifications } from '@/src/slices/notifications';
 
 const UserNavBar: FC = () => {
   const user = useAppSelector((state) => state.user);
+  const dispatch = useDispatch();
+
+  // Проверяем наличие уведомлений при загрузке страницы
+  useEffect(() => {
+    if (user?.isValid) {
+      try {
+        // Убеждаемся, что у нас есть user_id в cookie для API запросов
+        const userIdCookie = document.cookie
+          .split('; ')
+          .find(row => row.startsWith('user_id='));
+          
+        if (!userIdCookie) {
+          // Если cookie отсутствует, создаем её
+          document.cookie = `user_id=${user.id}; path=/; max-age=86400`;
+        }
+        
+        // Загружаем уведомления
+        console.log('Loading notifications for user:', user.id);
+        dispatch(fetchNotifications());
+      } catch (error) {
+        console.error('Error fetching notifications on load:', error);
+      }
+    }
+  }, [user?.isValid, user?.id, dispatch]);
 
   const logout = async () => {
     const URL = '/api/logout';
@@ -45,7 +73,8 @@ const UserNavBar: FC = () => {
   const renderButtons = () => {
     if (user?.isValid) {
       return (
-        <>
+        <Flex alignItems="center">
+          <NotificationsMenu />
           <Menu>
             <MenuButton size="xs" mr="5px">
               <Avatar
@@ -59,7 +88,7 @@ const UserNavBar: FC = () => {
               <MenuItem onClick={logout}>Log out</MenuItem>
             </MenuList>
           </Menu>
-        </>
+        </Flex>
       );
     }
 
