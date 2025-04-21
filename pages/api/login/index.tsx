@@ -3,21 +3,11 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { connectToDatabase } from '@/util/mongodb';
 import { compare } from 'bcrypt';
 import { serialize } from 'cookie';
+import { cors } from '../cors';
 
 import { sign } from 'jsonwebtoken';
 
 const KEY = process.env.JWT_SECRET_KEY;
-
-// Функция для добавления CORS заголовков
-const setCorsHeaders = (res: NextApiResponse) => {
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Origin', '*'); // Разрешаем запросы со всех доменов
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-  );
-};
 
 const isUserExists = async (db, email) => {
   const user = await db.collection('users').findOne({ email: email });
@@ -29,16 +19,8 @@ const isUserExists = async (db, email) => {
   return null;
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
-  // Устанавливаем CORS заголовки
-  setCorsHeaders(res);
-
-  // Отвечаем на запросы OPTIONS (preflight)
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
-  }
-
+// Базовый обработчик
+async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   if (req.method === 'POST') {
     const { email, password } = req.body;
 
@@ -95,3 +77,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Method not allowed' });
   }
 }
+
+// Оборачиваем обработчик в CORS middleware
+export default cors(handler);
