@@ -35,74 +35,93 @@ const Login = () => {
     e.preventDefault();
     setIsFetching(true);
 
-    const data = {
-      email: values.email,
-      password: values.password
-    };
+    try {
+      const data = {
+        email: values.email,
+        password: values.password
+      };
 
-    const url = `${host}/api/login`;
+      // Сначала выведем явно базовый URL
+      const baseUrl = host || window.location.origin;
+      console.log('Using base URL:', baseUrl);
+      const url = `${baseUrl}/api/login`;
+      console.log('Making login request to:', url);
 
-    const response = await fetch(url, {
-      method: 'POST',
-      mode: 'cors',
-      cache: 'no-cache',
-      credentials: 'same-origin',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      redirect: 'follow',
-      referrerPolicy: 'no-referrer',
-      body: JSON.stringify(data)
-    });
+      const response = await fetch(url, {
+        method: 'POST',
+        mode: 'cors',
+        cache: 'no-cache',
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        redirect: 'follow',
+        referrerPolicy: 'no-referrer',
+        body: JSON.stringify(data)
+      });
 
-    const result = await response.json();
-    setIsFetching(false);
+      console.log('Login response status:', response.status);
 
-    const { email: inviteEmail, token, boardId } = router.query;
-    const isInvitedUser = inviteEmail && token && boardId;
-
-    if (isInvitedUser && result.message === 'success') {
-      const hasInvited = await inviteUser({ email: inviteEmail, boardId });
-
-      if (hasInvited) {
-        window.location.href = `${window.location.origin}/home`;
+      if (!response.ok) {
+        console.error('Login failed with status:', response.status);
+        setErrorState(true);
+        setIsFetching(false);
+        return;
       }
-    } else if (result.message === 'success') {
-      console.log('Login successful, setting cookies and localStorage...');
 
-      // Установка куки user_id с различными параметрами для большей надежности
-      const expirationDate = new Date();
-      expirationDate.setDate(expirationDate.getDate() + 1); // +1 день
+      const result = await response.json();
+      console.log('Login result:', result);
+      setIsFetching(false);
 
-      // Устанавливаем куки без secure и sameSite для работы на всех средах
-      document.cookie = `user_id=${result.id}; path=/; expires=${expirationDate.toUTCString()}`;
+      const { email: inviteEmail, token, boardId } = router.query;
+      const isInvitedUser = inviteEmail && token && boardId;
 
-      // Сохраняем токен в localStorage
-      try {
-        localStorage.setItem('trello_user_id', result.id);
-        if (result.clientToken) {
-          localStorage.setItem('trello_token', result.clientToken);
+      if (isInvitedUser && result.message === 'success') {
+        const hasInvited = await inviteUser({ email: inviteEmail, boardId });
+
+        if (hasInvited) {
+          window.location.href = `${window.location.origin}/home`;
         }
-        console.log('Authentication data saved to localStorage');
-      } catch (e) {
-        console.error('Failed to save to localStorage:', e);
+      } else if (result.message === 'success') {
+        console.log('Login successful, setting cookies and localStorage...');
+
+        // Установка куки user_id с различными параметрами для большей надежности
+        const expirationDate = new Date();
+        expirationDate.setDate(expirationDate.getDate() + 1); // +1 день
+
+        // Устанавливаем куки без secure и sameSite для работы на всех средах
+        document.cookie = `user_id=${result.id}; path=/; expires=${expirationDate.toUTCString()}`;
+
+        // Сохраняем токен в localStorage
+        try {
+          localStorage.setItem('trello_user_id', result.id);
+          if (result.clientToken) {
+            localStorage.setItem('trello_token', result.clientToken);
+          }
+          console.log('Authentication data saved to localStorage');
+        } catch (e) {
+          console.error('Failed to save to localStorage:', e);
+        }
+
+        console.log('Cookies and localStorage set, redirecting to /home now...');
+
+        // Используем router для программного перенаправления
+        try {
+          // Сначала пробуем использовать router.push, который более надежен
+          router.push('/home');
+        } catch (e) {
+          console.error('Router push failed, using direct location change', e);
+          // Если router не сработал, используем window.location
+          window.location.href = `${window.location.origin}/home`;
+        }
+      } else {
+        console.error('Login response did not contain success message', result);
+        setErrorState(true);
       }
-
-      console.log('Cookies and localStorage set, redirecting to /home now...');
-
-      // Используем router для программного перенаправления
-      try {
-        // Сначала пробуем использовать router.push, который более надежен
-        router.push('/home');
-      } catch (e) {
-        console.error('Router push failed, using direct location change', e);
-        // Если router не сработал, используем window.location
-        window.location.href = `${window.location.origin}/home`;
-      }
-    }
-
-    if (response.status === 404) {
+    } catch (error) {
+      console.error('Error during login:', error);
       setErrorState(true);
+      setIsFetching(false);
     }
   };
 

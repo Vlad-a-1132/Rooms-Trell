@@ -4,8 +4,11 @@ export default function checkEnvironment(): string {
     return window.location.origin;
   }
 
-  // В серверном рендеринге используем относительный путь или переменную окружения
-  const envUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : ''; // Пустая строка для относительного пути на текущем домене
+  // В серверном рендеринге используем переменную окружения или значение по умолчанию
+  const envUrl =
+    process.env.NEXT_PUBLIC_API_URL ||
+    (process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : '');
 
+  console.log('Server environment URL:', envUrl || 'relative URL (empty string)');
   return envUrl;
 }
