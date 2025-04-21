@@ -3,8 +3,18 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 // Типы для middleware
 type NextHandler = (req: NextApiRequest, res: NextApiResponse) => Promise<void> | void;
 
+// Определяем типы для CORS конфигурации
+type CorsOrigin = string | string[] | boolean;
+
+interface CorsConfig {
+  origin: CorsOrigin;
+  methods: string[];
+  allowedHeaders: string[];
+  credentials: boolean;
+}
+
 // Конфигурация CORS по умолчанию
-const defaultCorsConfig = {
+const defaultCorsConfig: CorsConfig = {
   origin: '*',
   methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
   allowedHeaders: [
@@ -45,7 +55,8 @@ export function cors(handler: NextHandler, corsConfig = defaultCorsConfig): Next
     } else if (Array.isArray(corsConfig.origin)) {
       // Если указан массив источников
       const requestOrigin = req.headers.origin || '';
-      if (corsConfig.origin.includes(requestOrigin)) {
+      const origins = corsConfig.origin as string[]; // Явное приведение типа
+      if (origins.includes(requestOrigin)) {
         res.setHeader('Access-Control-Allow-Origin', requestOrigin);
       }
     }

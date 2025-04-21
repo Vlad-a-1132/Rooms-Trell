@@ -1,12 +1,12 @@
-// Этот файл будет удален
-// Пустой файл для замены существующего middleware.ts на сервере
+// Этот файл является заглушкой для Next.js 11.1.3
+// Middleware функциональность полностью поддерживается только в Next.js 12+
+// Этот файл существует для предотвращения ошибок сборки
+
+// Экспортируем пустой объект, чтобы TypeScript распознал файл как модуль
 export {};
 
-// This is a temporary middleware implementation for Next.js 11.1.3
-// Note: The middleware feature is only fully supported in Next.js 12+
-// This file exists to prevent build errors with the current project setup
-
+// Пустая функция middleware для Next.js 11.1.3
 export default function middleware() {
-  // This middleware doesn't do anything in Next.js 11.1.3
+  // Эта middleware ничего не делает в Next.js 11.1.3
   return;
 }
