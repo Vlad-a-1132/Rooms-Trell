@@ -24,11 +24,16 @@ async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void>
         // Устанавливаем куки для токена и user_id
         const cookieOptions = {
           httpOnly: true,
-          secure: process.env.NODE_ENV !== 'development',
+          secure: false, // Отключаем secure для тестирования
           maxAge: 60 * 60 * 24 * 1000, // 1 день
-          sameSite: 'lax' as const, // изменено с 'strict' на 'lax' для лучшей совместимости
+          sameSite: 'none' as const, // Для кросс-доменных запросов
           path: '/'
         };
+
+        // Добавляем domain если мы на Vercel
+        if (req.headers.host?.includes('vercel.app')) {
+          console.log('Vercel environment detected, setting specific cookie options');
+        }
 
         // Установка куков вручную
         res.setHeader('Set-Cookie', [
@@ -42,9 +47,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void>
         // Для отладки, выведем в консоль
         console.log('Setting cookies with token:', data.token);
         console.log('User ID:', data.id);
+        console.log('Host:', req.headers.host);
 
         // Добавляем token в ответ для использования на клиенте
         data.id = data.id || '';
+
+        // Явно включаем токен в ответ для использования клиентом
+        data.clientToken = data.token;
       }
 
       // Возвращаем статус и данные

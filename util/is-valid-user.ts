@@ -36,12 +36,25 @@ const isValidUser = (ctx): UserValidProps => {
     }
   } else {
     // Client-side authentication check
+    console.log('Running client-side auth check');
+
+    // Проверка куки
     const cookies = document.cookie ? cookie.parse(document.cookie) : {};
     const userId = cookies.user_id;
 
-    if (userId) {
-      return { id: userId, isValid: true };
+    console.log('Cookies found:', JSON.stringify(cookies));
+
+    // Проверка localStorage как резервный вариант
+    const localStorageUserId = localStorage.getItem('trello_user_id');
+
+    console.log('LocalStorage user_id:', localStorageUserId);
+
+    if (userId || localStorageUserId) {
+      console.log('User authenticated via client-side check');
+      return { id: userId || localStorageUserId, isValid: true };
     }
+
+    console.log('User not authenticated via client-side check');
     return { isValid: false };
   }
 };

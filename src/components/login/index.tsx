@@ -68,15 +68,32 @@ const Login = () => {
         window.location.href = `${window.location.origin}/home`;
       }
     } else if (result.message === 'success') {
-      // Set user_id in the cookie on the client side for backup
-      document.cookie = `user_id=${result.id}; path=/; max-age=86400`;
+      console.log('Login successful, setting cookies...');
 
-      console.log('Login successful, redirecting to /home');
+      // Установка куки user_id с различными параметрами для большей надежности
+      const expirationDate = new Date();
+      expirationDate.setDate(expirationDate.getDate() + 1); // +1 день
 
-      // Add timeout to ensure cookie is set before redirection
+      // Устанавливаем куки без secure и sameSite для работы на всех средах
+      document.cookie = `user_id=${result.id}; path=/; expires=${expirationDate.toUTCString()}`;
+
+      // Добавляем токен в localStorage как запасной вариант
+      if (result.token) {
+        try {
+          localStorage.setItem('trello_user_id', result.id);
+          console.log('Backup authentication data saved to localStorage');
+        } catch (e) {
+          console.error('Failed to save to localStorage:', e);
+        }
+      }
+
+      console.log('Cookies set, redirecting to /home in 500ms...');
+
+      // Больший таймаут для уверенности
       setTimeout(() => {
+        console.log('Current cookies before redirect:', document.cookie);
         window.location.href = `${window.location.origin}/home`;
-      }, 300);
+      }, 500);
     }
 
     if (response.status === 404) {
