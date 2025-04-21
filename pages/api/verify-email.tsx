@@ -1,39 +1,37 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { connectToDatabase } from '@/util/mongodb';
+import { cors } from './cors';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
-  const { email } = req.query;
+// Обработчик API для перенаправления запросов проверки email на оригинальный сервер
+async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
+  if (req.method === 'GET') {
+    try {
+      const { email } = req.query;
 
-  const { db, client } = await connectToDatabase();
-
-  if (client.isConnected()) {
-    const requestType = req.method;
-
-    switch (requestType) {
-      case 'GET': {
-        const user = await db.collection('users').findOne({ email });
-        if (user) {
-          res.send({ status: 200, message: 'Found' });
-        } else {
-          res.send({ status: 404, message: 'Not found' });
+      // Отправляем запрос на оригинальный сервер
+      const response = await fetch(
+        `https://trello-clone-one.vercel.app/api/verify-email?email=${email}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
         }
+      );
 
-        break;
-      }
+      // Получаем ответ
+      const data = await response.json();
 
-      case 'PATCH': {
-        break;
-      }
-
-      case 'DELETE': {
-        break;
-      }
-
-      default:
-        res.send({ message: 'DB error' });
-        break;
+      // Возвращаем такой же статус и данные
+      res.status(response.status || 200).json(data);
+    } catch (error) {
+      console.error('Error forwarding verify-email request:', error);
+      res.status(500).json({ message: 'Internal server error', error: error.message });
     }
   } else {
-    res.send({ msg: 'DB connection error', status: 400 });
+    // Для других методов возвращаем ошибку Method Not Allowed
+    res.status(405).json({ message: 'Method Not Allowed' });
   }
 }
+
+// Оборачиваем обработчик в CORS middleware
+export default cors(handler);

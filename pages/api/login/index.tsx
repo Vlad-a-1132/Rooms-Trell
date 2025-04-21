@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { cors } from '../cors';
+import { serialize } from 'cookie';
 
 // Обработчик API для перенаправления запросов входа на оригинальный сервер
 async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
@@ -18,15 +19,26 @@ async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void>
       // Получаем ответ
       const data = await response.json();
 
-      // Если ответ успешный и содержит токен, устанавливаем куки
+      // Если ответ успешный и содержит токен, устанавливаем куки вручную
       if (response.status === 200 && data.token) {
-        // Получаем все заголовки Set-Cookie из ответа
-        const cookies = response.headers.get('set-cookie');
+        // Устанавливаем куки для токена и user_id
+        const cookieOptions = {
+          httpOnly: true,
+          secure: process.env.NODE_ENV !== 'development',
+          maxAge: 60 * 60 * 24 * 1000, // 1 день
+          sameSite: 'lax' as const, // изменено с 'strict' на 'lax' для лучшей совместимости
+          path: '/'
+        };
 
-        if (cookies) {
-          // Передаем все куки клиенту
-          res.setHeader('Set-Cookie', cookies);
-        }
+        // Установка куков вручную
+        res.setHeader('Set-Cookie', [
+          serialize('token', data.token, cookieOptions),
+          serialize('user_id', data.id || '', cookieOptions)
+        ]);
+
+        // Для отладки, выведем в консоль
+        console.log('Setting cookies with token:', data.token);
+        console.log('User ID:', data.id);
       }
 
       // Возвращаем статус и данные

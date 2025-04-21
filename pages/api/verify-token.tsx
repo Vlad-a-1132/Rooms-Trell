@@ -1,32 +1,37 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { connectToDatabase } from '@/util/mongodb';
+import { cors } from './cors';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
-  const { token } = req.query;
+// Обработчик API для перенаправления запросов проверки токена на оригинальный сервер
+async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
+  if (req.method === 'GET') {
+    try {
+      const { token } = req.query;
 
-  const { db, client } = await connectToDatabase();
-
-  if (client.isConnected()) {
-    const requestType = req.method;
-
-    switch (requestType) {
-      case 'GET': {
-        const tokenValue = await db.collection('token').findOne({ token });
-
-        if (tokenValue) {
-          res.status(200).send({ message: 'valid' });
-        } else {
-          res.status(404).send({ message: 'Not valid' });
+      // Отправляем запрос на оригинальный сервер
+      const response = await fetch(
+        `https://trello-clone-one.vercel.app/api/verify-token?token=${token}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
         }
+      );
 
-        break;
-      }
+      // Получаем ответ
+      const data = await response.json();
 
-      default:
-        res.send({ message: 'DB error' });
-        break;
+      // Возвращаем такой же статус и данные
+      res.status(response.status).json(data);
+    } catch (error) {
+      console.error('Error forwarding verify-token request:', error);
+      res.status(500).json({ message: 'Internal server error', error: error.message });
     }
   } else {
-    res.send({ msg: 'DB connection error', status: 400 });
+    // Для других методов возвращаем ошибку Method Not Allowed
+    res.status(405).json({ message: 'Method Not Allowed' });
   }
 }
+
+// Оборачиваем обработчик в CORS middleware
+export default cors(handler);
