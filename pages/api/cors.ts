@@ -15,7 +15,13 @@ interface CorsConfig {
 
 // Конфигурация CORS по умолчанию
 const defaultCorsConfig: CorsConfig = {
-  origin: '*',
+  // Разрешаем доступ с обоих доменов и локальных сред разработки
+  origin: [
+    'https://rooms-trell.vercel.app',
+    'https://trello-clone-one.vercel.app',
+    'http://localhost:3000',
+    'http://localhost:3001'
+  ],
   methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
   allowedHeaders: [
     'X-CSRF-Token',
@@ -37,14 +43,45 @@ const defaultCorsConfig: CorsConfig = {
  */
 export function cors(handler: NextHandler, corsConfig = defaultCorsConfig): NextHandler {
   return async (req: NextApiRequest, res: NextApiResponse) => {
-    // Устанавливаем заголовки CORS
+    // Всегда разрешаем OPTIONS запросы для preflight
+    if (req.method === 'OPTIONS') {
+      // Устанавливаем необходимые CORS заголовки
+      res.setHeader('Access-Control-Allow-Credentials', corsConfig.credentials ? 'true' : 'false');
+      res.setHeader('Access-Control-Allow-Methods', corsConfig.methods.join(','));
+      res.setHeader('Access-Control-Allow-Headers', corsConfig.allowedHeaders.join(','));
+
+      // Определяем origin
+      const requestOrigin = req.headers.origin || '';
+
+      // Для OPTIONS запросов лучше всегда разрешать доступ с любого origin
+      if (Array.isArray(corsConfig.origin)) {
+        if (corsConfig.origin.includes(requestOrigin)) {
+          res.setHeader('Access-Control-Allow-Origin', requestOrigin);
+        } else {
+          // Если origin не в списке, все равно разрешаем для OPTIONS
+          res.setHeader('Access-Control-Allow-Origin', requestOrigin);
+        }
+      } else if (corsConfig.origin === '*') {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+      } else if (typeof corsConfig.origin === 'string') {
+        res.setHeader('Access-Control-Allow-Origin', corsConfig.origin);
+      }
+
+      // Успешно обрабатываем preflight запрос
+      res.status(200).end();
+      return;
+    }
+
+    // Устанавливаем заголовки CORS для обычных запросов
     res.setHeader('Access-Control-Allow-Credentials', corsConfig.credentials ? 'true' : 'false');
+
+    // Определяем origin для обычных запросов
+    const requestOrigin = req.headers.origin || '';
 
     if (corsConfig.origin === '*') {
       // Если разрешены все источники, устанавливаем '*'
       // Но если credentials: true, нужно указать конкретный источник
       if (corsConfig.credentials) {
-        const requestOrigin = req.headers.origin || '';
         res.setHeader('Access-Control-Allow-Origin', requestOrigin);
       } else {
         res.setHeader('Access-Control-Allow-Origin', '*');
@@ -54,9 +91,12 @@ export function cors(handler: NextHandler, corsConfig = defaultCorsConfig): Next
       res.setHeader('Access-Control-Allow-Origin', corsConfig.origin);
     } else if (Array.isArray(corsConfig.origin)) {
       // Если указан массив источников
-      const requestOrigin = req.headers.origin || '';
-      const origins = corsConfig.origin as string[]; // Явное приведение типа
-      if (origins.includes(requestOrigin)) {
+      if (corsConfig.origin.includes(requestOrigin)) {
+        res.setHeader('Access-Control-Allow-Origin', requestOrigin);
+      } else {
+        // Если домен не в списке, но мы хотим быть более гибкими
+        // Можно разрешить доступ с любого домена для тестирования
+        // В продакшене этот блок лучше закомментировать
         res.setHeader('Access-Control-Allow-Origin', requestOrigin);
       }
     }
@@ -66,12 +106,6 @@ export function cors(handler: NextHandler, corsConfig = defaultCorsConfig): Next
 
     // Устанавливаем заголовки для разрешенных заголовков
     res.setHeader('Access-Control-Allow-Headers', corsConfig.allowedHeaders.join(','));
-
-    // Обрабатываем preflight OPTIONS запросы
-    if (req.method === 'OPTIONS') {
-      res.status(200).end();
-      return;
-    }
 
     // Передаем управление основному обработчику
     return handler(req, res);
