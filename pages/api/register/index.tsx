@@ -5,6 +5,17 @@ import { hash } from 'bcrypt';
 
 const SALTROUNDS = 10;
 
+// Функция для добавления CORS заголовков
+const setCorsHeaders = (res: NextApiResponse) => {
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Origin', '*'); // Разрешаем запросы со всех доменов
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+  );
+};
+
 const isUserExists = async (db, email) => {
   const user = await db.collection('users').find({ email: email }).toArray();
 
@@ -63,11 +74,20 @@ const createUser = async (body, res) => {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
+  // Устанавливаем CORS заголовки
+  setCorsHeaders(res);
+
+  // Отвечаем на запросы OPTIONS (preflight)
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
   if (req.method === 'POST') {
     createUser(req.body, res);
-
     return;
   } else {
     // Handle any other HTTP method
+    res.status(405).json({ message: 'Method Not Allowed' });
   }
 }
