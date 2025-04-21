@@ -68,7 +68,7 @@ const Login = () => {
         window.location.href = `${window.location.origin}/home`;
       }
     } else if (result.message === 'success') {
-      console.log('Login successful, setting cookies...');
+      console.log('Login successful, setting cookies and localStorage...');
 
       // Установка куки user_id с различными параметрами для большей надежности
       const expirationDate = new Date();
@@ -77,23 +77,28 @@ const Login = () => {
       // Устанавливаем куки без secure и sameSite для работы на всех средах
       document.cookie = `user_id=${result.id}; path=/; expires=${expirationDate.toUTCString()}`;
 
-      // Добавляем токен в localStorage как запасной вариант
-      if (result.token) {
-        try {
-          localStorage.setItem('trello_user_id', result.id);
-          console.log('Backup authentication data saved to localStorage');
-        } catch (e) {
-          console.error('Failed to save to localStorage:', e);
+      // Сохраняем токен в localStorage
+      try {
+        localStorage.setItem('trello_user_id', result.id);
+        if (result.clientToken) {
+          localStorage.setItem('trello_token', result.clientToken);
         }
+        console.log('Authentication data saved to localStorage');
+      } catch (e) {
+        console.error('Failed to save to localStorage:', e);
       }
 
-      console.log('Cookies set, redirecting to /home in 500ms...');
+      console.log('Cookies and localStorage set, redirecting to /home now...');
 
-      // Больший таймаут для уверенности
-      setTimeout(() => {
-        console.log('Current cookies before redirect:', document.cookie);
+      // Используем router для программного перенаправления
+      try {
+        // Сначала пробуем использовать router.push, который более надежен
+        router.push('/home');
+      } catch (e) {
+        console.error('Router push failed, using direct location change', e);
+        // Если router не сработал, используем window.location
         window.location.href = `${window.location.origin}/home`;
-      }, 500);
+      }
     }
 
     if (response.status === 404) {

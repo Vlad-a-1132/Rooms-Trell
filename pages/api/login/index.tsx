@@ -49,11 +49,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void>
         console.log('User ID:', data.id);
         console.log('Host:', req.headers.host);
 
-        // Добавляем token в ответ для использования на клиенте
+        // Явно включаем данные в ответ для использования клиентом
         data.id = data.id || '';
-
-        // Явно включаем токен в ответ для использования клиентом
         data.clientToken = data.token;
+        data.success = true;
       }
 
       // Возвращаем статус и данные
